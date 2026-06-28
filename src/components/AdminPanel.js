@@ -151,7 +151,7 @@ export default function AdminPanel({ onClose }) {
   const exportarPDF = () => {
     const filtrados = getReportesFiltrados();
     if (filtrados.length === 0) { alert('No hay reportes'); return; }
-    const doc = new jsPDF();
+    const doc = new jsPDF('landscape');
     doc.setFontSize(16); doc.setTextColor(79, 70, 229);
     doc.text('REPORTES DE ERRORES DE RX', 105, 20, { align: 'center' });
     doc.setFontSize(10); doc.setTextColor(100, 100, 100);
