@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, AlertTriangle } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import FormularioReporte from './components/FormularioReporte';
 import AdminPanel from './components/AdminPanel';
 
@@ -25,11 +25,7 @@ export default function App() {
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-orange-500/10"></div>
         <div className="relative max-w-4xl mx-auto px-6 py-10 text-center">
-          <div className="inline-flex items-center gap-2 mb-3 px-4 py-2 rounded-full glass text-red-700 text-sm font-medium">
-            <AlertTriangle size={14} />
-            Reporte de Errores
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2 tracking-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2 tracking-tight">
             Reportes de Errores de Rx
           </h1>
           <p className="text-slate-500 text-base">
