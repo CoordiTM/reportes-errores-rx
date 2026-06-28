@@ -1,5 +1,8 @@
+// AdminPanel.js - SOLO ESTE ARCHIVO CAMBIA
+// La corrección está en la línea donde muestra los errores: ahora mapea IDs a nombres
+
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, FileText, AlertTriangle, Users, Download, Search, Calendar } from 'lucide-react';
+import { X, Plus, Trash2, FileText, AlertTriangle, Users, Download, Search } from 'lucide-react';
 import {
   getAllReportes,
   deleteReporte,
@@ -19,11 +22,11 @@ export default function AdminPanel({ onClose }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('reportes');
-
+  
   const [reportes, setReportes] = useState([]);
   const [errores, setErrores] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
-
+  
   const [nuevoError, setNuevoError] = useState('');
   const [nuevoTecnico, setNuevoTecnico] = useState('');
   const [busqueda, setBusqueda] = useState('');
@@ -117,34 +120,32 @@ export default function AdminPanel({ onClose }) {
 
   const getReportesFiltrados = () => {
     let filtrados = reportes;
-
-    // Filtro por búsqueda (DNI o nombre)
+    
     if (busqueda) {
       filtrados = filtrados.filter(r => 
         r.nombres?.toLowerCase().includes(busqueda.toLowerCase()) ||
         r.dni?.includes(busqueda)
       );
     }
-
-    // Filtro por fecha
+    
     if (fechaInicio) {
       filtrados = filtrados.filter(r => r.fechaExamen >= fechaInicio);
     }
     if (fechaFin) {
       filtrados = filtrados.filter(r => r.fechaExamen <= fechaFin);
     }
-
+    
     return filtrados;
   };
 
   const exportarTXT = () => {
     const filtrados = getReportesFiltrados();
-
+    
     if (filtrados.length === 0) {
       alert('No hay reportes para exportar en el rango seleccionado');
       return;
     }
-
+    
     let content = 'REPORTES DE ERRORES DE RX - HNASS\n';
     content += 'Hospital Nacional Alberto Sabogal Sologuren\n';
     content += 'Servicio de Radiodiagnóstico y Ecografía\n';
@@ -152,20 +153,23 @@ export default function AdminPanel({ onClose }) {
       content += `Periodo: ${fechaInicio || 'Inicio'} al ${fechaFin || 'Hoy'}\n`;
     }
     content += '=' .repeat(50) + '\n\n';
-
+    
     filtrados.forEach((r, i) => {
       content += `Reporte #${i + 1}\n`;
       content += `DNI: ${r.dni}\n`;
       content += `Paciente: ${r.nombres}\n`;
       content += `Fecha: ${r.fechaExamen} | Hora: ${r.horaExamen}\n`;
       content += `Examen: ${r.examenRealizado}\n`;
-      content += `Errores: ${r.errores?.join(', ') || 'N/A'}\n`;
+      content += `Errores: ${r.errores?.map(errId => {
+        const err = errores.find(e => e.id === errId);
+        return err ? err.nombre : errId;
+      }).join(', ') || 'N/A'}\n`;
       content += `Descripción: ${r.descripcionCambio || 'N/A'}\n`;
       content += `Responsable: ${r.tecnicoResponsable}\n`;
       content += `Reporta: ${r.quienReporta}\n`;
       content += '---\n\n';
     });
-
+    
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -209,8 +213,7 @@ export default function AdminPanel({ onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-
-        {/* Header */}
+        
         <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex justify-between items-center">
           <h3 className="text-xl font-bold text-slate-800">🔧 Panel de Administración</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
@@ -218,7 +221,6 @@ export default function AdminPanel({ onClose }) {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex border-b border-slate-100">
           <button
             onClick={() => setActiveTab('reportes')}
@@ -246,12 +248,10 @@ export default function AdminPanel({ onClose }) {
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-
+          
           {activeTab === 'reportes' && (
             <div>
-              {/* Filtros */}
               <div className="flex flex-col md:flex-row gap-3 mb-4">
                 <div className="flex-1 relative">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -268,14 +268,12 @@ export default function AdminPanel({ onClose }) {
                     type="date"
                     value={fechaInicio}
                     onChange={(e) => setFechaInicio(e.target.value)}
-                    placeholder="Desde"
                     className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm"
                   />
                   <input
                     type="date"
                     value={fechaFin}
                     onChange={(e) => setFechaFin(e.target.value)}
-                    placeholder="Hasta"
                     className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm"
                   />
                 </div>
@@ -313,7 +311,10 @@ export default function AdminPanel({ onClose }) {
                       </div>
                       <p className="text-sm text-slate-600 mb-1"><strong>Examen:</strong> {reporte.examenRealizado}</p>
                       <p className="text-sm text-slate-600 mb-1">
-                        <strong>Errores:</strong> {reporte.errores?.join(', ')}
+                        <strong>Errores:</strong> {reporte.errores?.map(errId => {
+                          const err = errores.find(e => e.id === errId);
+                          return err ? err.nombre : errId;
+                        }).join(', ')}
                       </p>
                       {reporte.descripcionCambio && (
                         <p className="text-sm text-slate-600 mb-1"><strong>Cambio:</strong> {reporte.descripcionCambio}</p>
