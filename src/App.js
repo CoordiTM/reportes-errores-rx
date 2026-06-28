@@ -26,7 +26,7 @@ export default function App() {
         <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-orange-500/10"></div>
         <div className="relative max-w-4xl mx-auto px-6 py-10 text-center">
         <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2 tracking-tight">
-            Reportes de Errores de Rx
+            Reportes Errores de Rayos x
           </h1>
           <p className="text-slate-500 text-base">
             Hospital Nacional Alberto Sabogal Sologuren
