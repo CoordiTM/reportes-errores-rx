@@ -14,7 +14,7 @@ import {
 
 const REPORTES_COLLECTION = 'reportes_errores_rx';
 const ERRORES_CATALOG = 'catalogo de errores';
-const TECNOLOGOS_LIST = 'tecnologos_lista';  // CAMBIO: tecnologos en lugar de tecnicos
+const TECNOLOGOS_LIST = 'tecnologos_lista';
 
 // ============================================
 // REPORTES
@@ -34,6 +34,12 @@ export const addReporte = async (reporteData) => {
   return { id: docRef.id, ...data };
 };
 
+export const updateReporte = async (id, reporteData) => {
+  const docRef = doc(db, REPORTES_COLLECTION, id);
+  await setDoc(docRef, reporteData, { merge: true });
+  return { id, ...reporteData };
+};
+
 export const deleteReporte = async (id) => {
   await deleteDoc(doc(db, REPORTES_COLLECTION, id));
 };
@@ -50,7 +56,7 @@ export const getReportesByFecha = async (fechaInicio, fechaFin) => {
 };
 
 // ============================================
-// CATÁLOGO DE ERRORES (Multi-check)
+// CATÁLOGO DE ERRORES
 // ============================================
 export const getCatalogoErrores = async () => {
   const snapshot = await getDocs(collection(db, ERRORES_CATALOG));
