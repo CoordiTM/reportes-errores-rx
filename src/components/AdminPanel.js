@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Edit2, Save, AlertCircle, Users, AlertTriangle, FileText, Download, Search } from 'lucide-react';
+import { X, Plus, Trash2, FileText, AlertTriangle, Users, Download, Search, Calendar } from 'lucide-react';
 import {
   getAllReportes,
   deleteReporte,
@@ -27,6 +27,8 @@ export default function AdminPanel({ onClose }) {
   const [nuevoError, setNuevoError] = useState('');
   const [nuevoTecnico, setNuevoTecnico] = useState('');
   const [busqueda, setBusqueda] = useState('');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -89,12 +91,12 @@ export default function AdminPanel({ onClose }) {
       setNuevoTecnico('');
       await loadData();
     } catch (error) {
-      alert('Error agregando técnico: ' + error.message);
+      alert('Error agregando tecnólogo médico: ' + error.message);
     }
   };
 
   const handleDeleteTecnico = async (id) => {
-    if (!window.confirm('¿Eliminar este técnico?')) return;
+    if (!window.confirm('¿Eliminar este tecnólogo médico?')) return;
     try {
       await deleteTecnico(id);
       await loadData();
@@ -113,13 +115,42 @@ export default function AdminPanel({ onClose }) {
     }
   };
 
+  const getReportesFiltrados = () => {
+    let filtrados = reportes;
+
+    // Filtro por búsqueda (DNI o nombre)
+    if (busqueda) {
+      filtrados = filtrados.filter(r => 
+        r.nombres?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        r.dni?.includes(busqueda)
+      );
+    }
+
+    // Filtro por fecha
+    if (fechaInicio) {
+      filtrados = filtrados.filter(r => r.fechaExamen >= fechaInicio);
+    }
+    if (fechaFin) {
+      filtrados = filtrados.filter(r => r.fechaExamen <= fechaFin);
+    }
+
+    return filtrados;
+  };
+
   const exportarTXT = () => {
-    const filtrados = reportes.filter(r => 
-      r.nombres?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      r.dni?.includes(busqueda)
-    );
+    const filtrados = getReportesFiltrados();
+
+    if (filtrados.length === 0) {
+      alert('No hay reportes para exportar en el rango seleccionado');
+      return;
+    }
 
     let content = 'REPORTES DE ERRORES DE RX - HNASS\n';
+    content += 'Hospital Nacional Alberto Sabogal Sologuren\n';
+    content += 'Servicio de Radiodiagnóstico y Ecografía\n';
+    if (fechaInicio || fechaFin) {
+      content += `Periodo: ${fechaInicio || 'Inicio'} al ${fechaFin || 'Hoy'}\n`;
+    }
     content += '=' .repeat(50) + '\n\n';
 
     filtrados.forEach((r, i) => {
@@ -139,7 +170,7 @@ export default function AdminPanel({ onClose }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `reportes-errores-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `reportes-errores-${fechaInicio || 'inicio'}_${fechaFin || 'hoy'}.txt`;
     a.click();
   };
 
@@ -173,10 +204,7 @@ export default function AdminPanel({ onClose }) {
     );
   }
 
-  const reportesFiltrados = reportes.filter(r => 
-    r.nombres?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    r.dni?.includes(busqueda)
-  );
+  const reportesFiltrados = getReportesFiltrados();
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -214,7 +242,7 @@ export default function AdminPanel({ onClose }) {
               activeTab === 'tecnicos' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <Users size={16} /> Técnicos ({tecnicos.length})
+            <Users size={16} /> Tecnólogos Médicos ({tecnicos.length})
           </button>
         </div>
 
@@ -223,7 +251,8 @@ export default function AdminPanel({ onClose }) {
 
           {activeTab === 'reportes' && (
             <div>
-              <div className="flex gap-3 mb-4">
+              {/* Filtros */}
+              <div className="flex flex-col md:flex-row gap-3 mb-4">
                 <div className="flex-1 relative">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
@@ -234,6 +263,22 @@ export default function AdminPanel({ onClose }) {
                     className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none"
                   />
                 </div>
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={fechaInicio}
+                    onChange={(e) => setFechaInicio(e.target.value)}
+                    placeholder="Desde"
+                    className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm"
+                  />
+                  <input
+                    type="date"
+                    value={fechaFin}
+                    onChange={(e) => setFechaFin(e.target.value)}
+                    placeholder="Hasta"
+                    className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none text-sm"
+                  />
+                </div>
                 <button
                   onClick={exportarTXT}
                   className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition flex items-center gap-2 text-sm"
@@ -241,6 +286,10 @@ export default function AdminPanel({ onClose }) {
                   <Download size={16} /> Exportar TXT
                 </button>
               </div>
+
+              <p className="text-sm text-slate-500 mb-4">
+                Mostrando {reportesFiltrados.length} de {reportes.length} reportes
+              </p>
 
               {loading ? (
                 <p className="text-center text-slate-400 py-8">Cargando...</p>
@@ -322,7 +371,7 @@ export default function AdminPanel({ onClose }) {
                   value={nuevoTecnico}
                   onChange={(e) => setNuevoTecnico(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddTecnico()}
-                  placeholder="Nombre del técnico..."
+                  placeholder="Nombre del tecnólogo médico..."
                   className="flex-1 px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none"
                 />
                 <button

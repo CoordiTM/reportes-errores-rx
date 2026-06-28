@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, Send, Calendar, Clock, User, FileText, AlertTriangle, Users } from 'lucide-react';
+import { AlertCircle, CheckCircle, Send, Calendar, Clock, User, FileText, AlertTriangle, Users, X, Edit3 } from 'lucide-react';
 import { addReporte, getCatalogoErrores, getTecnicos, getDefaultErrores, getDefaultTecnicos } from '../services/dbService';
 
 export default function FormularioReporte({ onReporteEnviado }) {
@@ -19,6 +19,7 @@ export default function FormularioReporte({ onReporteEnviado }) {
   const [tecnicos, setTecnicos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     loadCatalogos();
@@ -53,7 +54,7 @@ export default function FormularioReporte({ onReporteEnviado }) {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!formData.dni || !formData.nombres || !formData.examenRealizado || 
@@ -62,6 +63,11 @@ export default function FormularioReporte({ onReporteEnviado }) {
       return;
     }
 
+    setShowConfirm(true);
+  };
+
+  const handleConfirm = async () => {
+    setShowConfirm(false);
     setLoading(true);
     try {
       await addReporte(formData);
@@ -86,6 +92,13 @@ export default function FormularioReporte({ onReporteEnviado }) {
     }
   };
 
+  const getErroresNombres = () => {
+    return formData.errores.map(id => {
+      const err = erroresCatalogo.find(e => e.id === id);
+      return err ? err.nombre : id;
+    });
+  };
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="glass rounded-2xl p-6 md:p-8 shadow-xl">
@@ -105,6 +118,51 @@ export default function FormularioReporte({ onReporteEnviado }) {
           }`}>
             {mensaje.tipo === 'exito' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
             <span className="text-sm font-medium">{mensaje.texto}</span>
+          </div>
+        )}
+
+        {/* Modal de Confirmación */}
+        {showConfirm && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-slate-800">📋 Confirmar Reporte</h3>
+                <button onClick={() => setShowConfirm(false)} className="text-slate-400 hover:text-slate-600">
+                  <X size={24} />
+                </button>
+              </div>
+              <p className="text-sm text-slate-500 mb-4">Verifica que los datos sean correctos:</p>
+
+              <div className="space-y-2 mb-6 bg-slate-50 p-4 rounded-xl">
+                <p className="text-sm"><strong>DNI:</strong> {formData.dni}</p>
+                <p className="text-sm"><strong>Paciente:</strong> {formData.nombres}</p>
+                <p className="text-sm"><strong>Fecha:</strong> {formData.fechaExamen} | <strong>Hora:</strong> {formData.horaExamen}</p>
+                <p className="text-sm"><strong>Examen:</strong> {formData.examenRealizado}</p>
+                <p className="text-sm"><strong>Errores:</strong> {getErroresNombres().join(', ')}</p>
+                {formData.descripcionCambio && (
+                  <p className="text-sm"><strong>Cambio:</strong> {formData.descripcionCambio}</p>
+                )}
+                <p className="text-sm"><strong>Responsable:</strong> {formData.tecnicoResponsable}</p>
+                <p className="text-sm"><strong>Reporta:</strong> {formData.quienReporta}</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 px-4 py-3 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition font-medium flex items-center justify-center gap-2"
+                >
+                  <Edit3 size={16} />
+                  Editar
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-orange-600 text-white rounded-xl hover:from-red-600 hover:to-orange-700 transition font-medium flex items-center justify-center gap-2"
+                >
+                  <Send size={16} />
+                  Confirmar y Enviar
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -194,7 +252,7 @@ export default function FormularioReporte({ onReporteEnviado }) {
               <span className="text-red-500">*</span> Error (selecciona uno o más)
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {erroresCatalogo.filter(e => e.activo).map(error => (
+              {erroresCatalogo.map(error => (
                 <label
                   key={error.id}
                   className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition ${
@@ -230,12 +288,12 @@ export default function FormularioReporte({ onReporteEnviado }) {
             />
           </div>
 
-          {/* Fila 6: Técnicos */}
+          {/* Fila 6: Tecnólogos Médicos */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 <User size={14} className="inline mr-1" />
-                <span className="text-red-500">*</span> Tecnólogo Responsable
+                <span className="text-red-500">*</span> Tecnólogo Médico Responsable
               </label>
               <select
                 name="tecnicoResponsable"
@@ -244,7 +302,7 @@ export default function FormularioReporte({ onReporteEnviado }) {
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none transition bg-white"
               >
                 <option value="">Selecciona...</option>
-                {tecnicos.filter(t => t.activo).map(tec => (
+                {tecnicos.map(tec => (
                   <option key={tec.id} value={tec.nombre}>{tec.nombre}</option>
                 ))}
               </select>
@@ -252,7 +310,7 @@ export default function FormularioReporte({ onReporteEnviado }) {
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 <Users size={14} className="inline mr-1" />
-                <span className="text-red-500">*</span> Quien Reporta
+                <span className="text-red-500">*</span> Tecnólogo Médico que Reporta
               </label>
               <select
                 name="quienReporta"
@@ -261,7 +319,7 @@ export default function FormularioReporte({ onReporteEnviado }) {
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none transition bg-white"
               >
                 <option value="">Selecciona...</option>
-                {tecnicos.filter(t => t.activo).map(tec => (
+                {tecnicos.map(tec => (
                   <option key={tec.id} value={tec.nombre}>{tec.nombre}</option>
                 ))}
               </select>
@@ -279,7 +337,7 @@ export default function FormularioReporte({ onReporteEnviado }) {
             ) : (
               <>
                 <Send size={18} />
-                Enviar Reporte
+                Revisar y Enviar Reporte
               </>
             )}
           </button>
