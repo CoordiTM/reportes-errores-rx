@@ -14,7 +14,7 @@ import {
 
 const REPORTES_COLLECTION = 'reportes_errores_rx';
 const ERRORES_CATALOG = 'catalogo de errores';
-const TECNICOS_LIST = 'tecnicos_lista';
+const TECNOLOGOS_LIST = 'tecnologos_lista';  // CAMBIO: tecnologos en lugar de tecnicos
 
 // ============================================
 // REPORTES
@@ -74,15 +74,15 @@ export const deleteErrorCatalogo = async (id) => {
 };
 
 // ============================================
-// LISTA DE TÉCNICOS
+// LISTA DE TECNÓLOGOS MÉDICOS
 // ============================================
 export const getTecnicos = async () => {
-  const snapshot = await getDocs(collection(db, TECNICOS_LIST));
+  const snapshot = await getDocs(collection(db, TECNOLOGOS_LIST));
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
 export const addTecnico = async (nombre) => {
-  const docRef = await addDoc(collection(db, TECNICOS_LIST), {
+  const docRef = await addDoc(collection(db, TECNOLOGOS_LIST), {
     nombre,
     activo: true
   });
@@ -90,11 +90,11 @@ export const addTecnico = async (nombre) => {
 };
 
 export const updateTecnico = async (id, data) => {
-  await setDoc(doc(db, TECNICOS_LIST, id), data, { merge: true });
+  await setDoc(doc(db, TECNOLOGOS_LIST, id), data, { merge: true });
 };
 
 export const deleteTecnico = async (id) => {
-  await deleteDoc(doc(db, TECNICOS_LIST, id));
+  await deleteDoc(doc(db, TECNOLOGOS_LIST, id));
 };
 
 // ============================================
@@ -112,6 +112,6 @@ export const getDefaultErrores = () => [
 ];
 
 export const getDefaultTecnicos = () => [
-  { id: 'tec-1', nombre: 'Tecnólogo 1', activo: true },
-  { id: 'tec-2', nombre: 'Tecnólogo 2', activo: true }
+  { id: 'tec-1', nombre: 'Tecnólogo Médico 1', activo: true },
+  { id: 'tec-2', nombre: 'Tecnólogo Médico 2', activo: true }
 ];
