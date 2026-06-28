@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 
 const REPORTES_COLLECTION = 'reportes_errores_rx';
-const ERRORES_CATALOG = 'catalogo_errores';
+const ERRORES_CATALOG = 'catalogo de errores';
 const TECNICOS_LIST = 'tecnicos_lista';
 
 // ============================================
